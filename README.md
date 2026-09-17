@@ -1,6 +1,8 @@
 
 **Welcome to the DOSBox-X project homepage located on GitHub.**
 
+**This is a fork of Dosbox-x with AWE32 support; AWE32 support isn't included yet, but I'm working on it.**
+
 ## Useful links
 - [DOSBox-X's website](https://dosbox-x.com) ([https://dosbox-x.com](https://dosbox-x.com) or [http://dosbox-x.software](http://dosbox-x.software))  
 - [DOSBox-X's Wiki page](https://dosbox-x.com/wiki)  
