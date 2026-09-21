@@ -1450,7 +1450,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
     const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7", nullptr};
     const char* gustypes[] = { "classic", "classic37", "max", "interwave", nullptr };
-    const char* sbtypes[] = { "sb1", "sb1.0", "sb1.5", "sb2", "sb2.0", "sb2.01", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "ess1688", "reveal_sc400", "none", nullptr };
+    const char* sbtypes[] = { "sb1", "sb1.0", "sb1.5", "sb2", "sb2.0", "sb2.01", "sbpro1", "sbpro2", "sb16", "sb16vibra", "sbawe", "gb", "ess688", "ess1688", "reveal_sc400", "none", nullptr };
     const char* cms_settings[] = { "on", "off", "auto", nullptr };
     const char* oplmodes[] = { "auto", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", "esfm", nullptr };
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", nullptr };
@@ -3781,7 +3781,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 			Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,def_sbtype[ci]);//"sb16"
 			Pstring->Set_values(sbtypes);
-			Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster.");
+			Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster. 'sbawe' is Sound Blaster AWE32 (SB16 with EMU8000 wavetable synth, work in progress).");
 			Pstring->SetBasic(true);
 
 			Phex = secprop->Add_hex("sbbase",Property::Changeable::WhenIdle,def_sbbase[ci]);//0x220

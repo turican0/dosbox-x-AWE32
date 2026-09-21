@@ -471,6 +471,9 @@
     <ClCompile Include="..\src\hardware\sblaster.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\emu8000.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\tandy_sound.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -1842,6 +1845,9 @@
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\hardopl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\emu8000.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\nukedopl.h">

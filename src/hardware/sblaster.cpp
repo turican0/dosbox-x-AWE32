@@ -88,6 +88,7 @@
 #include "support.h"
 #include "shell.h"
 #include "hardopl.h"
+#include "emu8000.h"
 using namespace std;
 
 #ifdef WIN32
@@ -430,6 +431,7 @@ struct SB_INFO {
 	bool speaker;
 	bool midi;
 	bool vibra;
+	bool awe;					// Sound Blaster AWE32 (sbtype=sbawe): SB16 core plus EMU8000 wavetable synth
 	bool emit_blaster_var;
 	bool sbpro_stereo_bit_strict_mode; /* if set, stereo bit in mixer can only be set if emulating a Pro. if clear, SB16 can too */
 	bool sample_rate_limits; /* real SB hardware has limits on the sample rate */
@@ -2391,8 +2393,8 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 					}
 					break;
 				case SBT_16:
-					if (vibra) {
-						DSP_AddData(4); /* SB16 ViBRA DSP 4.13 */
+					if (vibra || awe) {
+						DSP_AddData(4); /* SB16 ViBRA / AWE32 DSP 4.13 (TODO: verify the AWE32 value on real hardware) */
 						DSP_AddData(13);
 					}
 					else {
@@ -3127,7 +3129,7 @@ std::string SB_INFO::GetSBtype() {
 		case SBT_PRO2:
 			return "SBPro 2";
 		case SBT_16:
-			return "SB16";
+			return awe ? "AWE32" : "SB16";
 		case SBT_GB:
 			return "GB";
 		default:
@@ -3914,6 +3916,7 @@ class SBLASTER: public Module_base {
 		/* Support Functions */
 		void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode) const {
 			sb[ci].vibra = false;
+			sb[ci].awe = false;
 			sb[ci].ess_type = ESS_NONE;
 			sb[ci].reveal_sc_type = RSC_NONE;
 			sb[ci].ess_extended_mode = false;
@@ -3929,6 +3932,11 @@ class SBLASTER: public Module_base {
 			else if (!strcasecmp(sbtype,"sbpro1")) type=SBT_PRO1;
 			else if (!strcasecmp(sbtype,"sbpro2")) type=SBT_PRO2;
 			else if (!strcasecmp(sbtype,"sb16vibra")) type=SBT_16;
+			else if (!strcasecmp(sbtype,"sbawe")) {
+				type=SBT_16; /* AWE32 is an SB16 with an EMU8000 attached */
+				if (ci == 0 && !IS_PC98_ARCH) sb[ci].awe = true;
+				else LOG(LOG_SB,LOG_WARN)("sbtype=sbawe is only supported on the first Sound Blaster in IBM PC mode, emulating SB16 instead");
+			}
 			else if (!strcasecmp(sbtype,"sb16")) type=SBT_16;
 			else if (!strcasecmp(sbtype,"gb")) type=SBT_GB;
 			else if (!strcasecmp(sbtype,"none")) type=SBT_NONE;
@@ -4161,7 +4169,7 @@ class SBLASTER: public Module_base {
 			Find_Type_And_Opl(section,sb[ci].type,oplmode);
 			if (sb[ci].hw.irq == 0) {
 				std::string sbtype=GetSBtype();
-				sb[ci].hw.irq=sbtype=="SBPro 2"||sbtype=="SB16"||IS_PC98_ARCH?5:7;
+				sb[ci].hw.irq=sbtype=="SBPro 2"||sbtype=="SB16"||sbtype=="AWE32"||IS_PC98_ARCH?5:7;
 			}
 
 			/* some DOS games/demos support Sound Blaster, and expect the IRQ to fire, but
@@ -4283,6 +4291,9 @@ class SBLASTER: public Module_base {
 				ReadHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sbs[ci],IO_MB);
 				WriteHandler[i].Install(sb[ci].hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sbs[ci],IO_MB);
 			}
+
+			/* Sound Blaster AWE32: EMU8000 wavetable synth at base+400h/800h/C00h (620h/A20h/E20h for base 220h) */
+			if (sb[ci].awe) EMU8000_Init(sb[ci].hw.base);
 
 			// TODO: read/write handler for ESS AudioDrive ES1688 (and later) MPU-401 ports (3x0h/3x1h; prevents Windows drivers from working with default settings if missing)
 
@@ -4526,7 +4537,9 @@ ASP>
 						temp << " P" << hex << baseio;
 					}
 				}
-				temp << " T" << static_cast<unsigned int>(sb[ci].type) << ends;
+				temp << " T" << static_cast<unsigned int>(sb[ci].type);
+				if (sb[ci].awe) temp << " E" << hex << static_cast<unsigned int>(sb[ci].hw.base + 0x400u); /* EMU8000 base */
+				temp << ends;
 
 				autoexecline.Install(temp.str());
 			}
@@ -4550,6 +4563,7 @@ ASP>
 			if(sb[ci].cms) {
 				CMS_ShutDown(m_configuration);
 			}
+			if (sb[ci].awe) EMU8000_ShutDown();
 			if (sb[ci].type==SBT_NONE || sb[ci].type==SBT_GB) return;
 			sb[ci].DSP_Reset(); // Stop everything
 		}
