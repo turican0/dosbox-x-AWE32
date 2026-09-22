@@ -22,11 +22,28 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v7
-      - uses: msys2/setup-msys2@v2
+      - name: Setup MSYS2
+        id: msys2
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
           install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
+      - name: Setup MSYS2 (retry after transient failure)
+        id: msys2_retry
+        if: steps.msys2.outcome == 'failure'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
+      - name: Fail if MSYS2 setup did not succeed after retry
+        if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Error "MSYS2 setup failed twice in a row - aborting job"
+          exit 1
       - name: Install libslirp
         run: |
           # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
@@ -154,16 +171,39 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v7
-      - uses: msys2/setup-msys2@v2
+      - name: Setup MSYS2
         id: msys2
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Setup MSYS2 (retry after transient failure)
+        id: msys2_retry
+        if: steps.msys2.outcome == 'failure'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Fail if MSYS2 setup did not succeed after retry
+        if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Error "MSYS2 setup failed twice in a row - aborting job"
+          exit 1
+      - name: Resolve MSYS2 location
+        id: msys2loc
+        shell: pwsh
+        run: |
+          $loc = '${{ steps.msys2.outputs.msys2-location }}'
+          if ([string]::IsNullOrEmpty($loc)) { $loc = '${{ steps.msys2_retry.outputs.msys2-location }}' }
+          echo "msys2-location=$loc" >> $env:GITHUB_OUTPUT
       - name: Export env parameters
         run: |
-          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
-          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "MSYS2_LOCATION=${{ steps.msys2loc.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2loc.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
           echo "mingw32 is installed at: $MSYSTEM_PREFIX"
       - name: Update build info
         shell: bash
@@ -288,16 +328,39 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v7
-      - uses: msys2/setup-msys2@v2
+      - name: Setup MSYS2
         id: msys2
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Setup MSYS2 (retry after transient failure)
+        id: msys2_retry
+        if: steps.msys2.outcome == 'failure'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Fail if MSYS2 setup did not succeed after retry
+        if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Error "MSYS2 setup failed twice in a row - aborting job"
+          exit 1
+      - name: Resolve MSYS2 location
+        id: msys2loc
+        shell: pwsh
+        run: |
+          $loc = '${{ steps.msys2.outputs.msys2-location }}'
+          if ([string]::IsNullOrEmpty($loc)) { $loc = '${{ steps.msys2_retry.outputs.msys2-location }}' }
+          echo "msys2-location=$loc" >> $env:GITHUB_OUTPUT
       - name: Export env parameters
         run: |
-          echo "MSYS2_LOCATION=${{ steps.msys2.outputs.msys2-location }}" >> $GITHUB_ENV
-          echo "MSYSTEM_PREFIX=${{ steps.msys2.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
+          echo "MSYS2_LOCATION=${{ steps.msys2loc.outputs.msys2-location }}" >> $GITHUB_ENV
+          echo "MSYSTEM_PREFIX=${{ steps.msys2loc.outputs.msys2-location }}/mingw32" >> $GITHUB_ENV
           echo "mingw32 is installed at: $MSYSTEM_PREFIX"
       - name: Update build info
         shell: bash

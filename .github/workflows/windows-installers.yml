@@ -280,11 +280,28 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v7
-      - uses: msys2/setup-msys2@v2
+      - name: Setup MSYS2
+        id: msys2
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW32
           update: true
           install: git mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
+      - name: Setup MSYS2 (retry after transient failure)
+        id: msys2_retry
+        if: steps.msys2.outcome == 'failure'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
+      - name: Fail if MSYS2 setup did not succeed after retry
+        if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Error "MSYS2 setup failed twice in a row - aborting job"
+          exit 1
       - name: Update build info
         shell: bash
         run: |
@@ -353,11 +370,28 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v7
-      - uses: msys2/setup-msys2@v2
+      - name: Setup MSYS2
+        id: msys2
+        continue-on-error: true
+        uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
           update: true
           install: git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake mingw-w64-x86_64-libslirp
+      - name: Setup MSYS2 (retry after transient failure)
+        id: msys2_retry
+        if: steps.msys2.outcome == 'failure'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake mingw-w64-x86_64-libslirp
+      - name: Fail if MSYS2 setup did not succeed after retry
+        if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Error "MSYS2 setup failed twice in a row - aborting job"
+          exit 1
       - name: Update build info
         shell: bash
         run: |
