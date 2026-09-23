@@ -30,6 +30,11 @@ jobs:
           msystem: MINGW64
           update: true
           install: git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake mingw-w64-x86_64-libslirp
+      - name: Clean up partial MSYS2 install before retry
+        if: steps.msys2.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\msys64" -Recurse -Force -ErrorAction SilentlyContinue
       - name: Setup MSYS2 (retry after transient failure)
         id: msys2_retry
         if: steps.msys2.outcome == 'failure'
@@ -163,6 +168,11 @@ jobs:
           msystem: UCRT64
           update: true
           install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+      - name: Clean up partial MSYS2 install before retry
+        if: steps.msys2.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\msys64" -Recurse -Force -ErrorAction SilentlyContinue
       - name: Setup MSYS2 (retry after transient failure)
         id: msys2_retry
         if: steps.msys2.outcome == 'failure'
@@ -285,6 +295,11 @@ jobs:
           msystem: MINGW64
           update: true
           install: git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake mingw-w64-x86_64-libslirp
+      - name: Clean up partial MSYS2 install before retry
+        if: steps.msys2.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\msys64" -Recurse -Force -ErrorAction SilentlyContinue
       - name: Setup MSYS2 (retry after transient failure)
         id: msys2_retry
         if: steps.msys2.outcome == 'failure'

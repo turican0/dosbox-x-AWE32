@@ -30,6 +30,11 @@ jobs:
           msystem: MINGW32
           update: true
           install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
+      - name: Clean up partial MSYS2 install before retry
+        if: steps.msys2.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\msys64" -Recurse -Force -ErrorAction SilentlyContinue
       - name: Setup MSYS2 (retry after transient failure)
         id: msys2_retry
         if: steps.msys2.outcome == 'failure'
@@ -179,6 +184,11 @@ jobs:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Clean up partial MSYS2 install before retry
+        if: steps.msys2.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\msys64" -Recurse -Force -ErrorAction SilentlyContinue
       - name: Setup MSYS2 (retry after transient failure)
         id: msys2_retry
         if: steps.msys2.outcome == 'failure'
@@ -336,6 +346,11 @@ jobs:
           msystem: MINGW32
           update: true
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
+      - name: Clean up partial MSYS2 install before retry
+        if: steps.msys2.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Remove-Item -LiteralPath "$env:RUNNER_TEMP\msys64" -Recurse -Force -ErrorAction SilentlyContinue
       - name: Setup MSYS2 (retry after transient failure)
         id: msys2_retry
         if: steps.msys2.outcome == 'failure'
