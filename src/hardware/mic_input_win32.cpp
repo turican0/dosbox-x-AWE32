@@ -7,6 +7,17 @@
 #ifdef WIN32
 #if defined(_MSC_VER) || defined(__MINGW64__)
 
+#if !defined(_MSC_VER)
+// mingw-w64's functiondiscoverykeys_devpkey.h only *declares* PKEY_Device_FriendlyName
+// and friends (extern, no storage) unless INITGUID is defined before it is first
+// included. MSVC links Propsys.lib which already provides the storage, so this is
+// only needed for the MinGW build, and only here (the one .cpp that should own it) -
+// mic_input_win32.h is also included from sblaster.cpp, which must NOT define
+// INITGUID, or the constants would be defined twice and fail to link.
+#define INITGUID
+#include <initguid.h>
+#endif
+
 #include "mic_input_win32.h"
 #include "logging.h"
 #include <cstdio>
