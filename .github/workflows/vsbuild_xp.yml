@@ -165,6 +165,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Clean up partial MSYS2 install before retry
         if: steps.msys2.outcome == 'failure'
@@ -178,6 +179,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Fail if MSYS2 setup did not succeed after retry
         if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'

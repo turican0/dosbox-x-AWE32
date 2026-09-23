@@ -29,6 +29,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
       - name: Clean up partial MSYS2 install before retry
         if: steps.msys2.outcome == 'failure'
@@ -42,6 +43,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
       - name: Fail if MSYS2 setup did not succeed after retry
         if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
@@ -183,6 +185,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Clean up partial MSYS2 install before retry
         if: steps.msys2.outcome == 'failure'
@@ -196,6 +199,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Fail if MSYS2 setup did not succeed after retry
         if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
@@ -345,6 +349,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Clean up partial MSYS2 install before retry
         if: steps.msys2.outcome == 'failure'
@@ -358,6 +363,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
+          cache: false
           install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Fail if MSYS2 setup did not succeed after retry
         if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
