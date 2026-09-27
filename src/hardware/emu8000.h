@@ -19,6 +19,8 @@
 #ifndef DOSBOX_EMU8000_H
 #define DOSBOX_EMU8000_H
 
+#include <string>
+
 /* Creative EMU8000 wavetable synthesizer, the synth chip of the Sound Blaster AWE32
  * (sbtype=sbawe).
  *
@@ -28,10 +30,21 @@
  *   620h DATA0 (low word)    622h DATA0 (high word, for 32-bit registers)
  *   A20h DATA1               A22h DATA2
  *   E20h DATA3               E22h POINTER  ((register << 5) | voice)
+ *
+ * The emulation is snd_emu8k.c from 86Box with the corrections measured on a real
+ * AWE32 by the AWE32Emu project (src/hardware/emu8k/README.md). Its output is the
+ * mixer channel "AWE32", which follows the MIDI volume of the SB16 mixer, as on the
+ * card.
  */
 
-/* sb_base: I/O base of the Sound Blaster card the EMU8000 is attached to */
-void EMU8000_Init(unsigned int sb_base);
+/* Name of the mixer channel. */
+#define EMU8000_MIXER_CHANNEL "AWE32"
+
+/* sb_base: I/O base of the Sound Blaster card the EMU8000 is attached to
+ * rom_path: awe32rom= setting (empty = search, see awe32_rom.h)
+ * rom_download: awe32romdownload= setting (ask, yes, no)
+ * ram_kb: sample DRAM on the card in KB (awe32ram=) */
+void EMU8000_Init(unsigned int sb_base, const std::string &rom_path, const std::string &rom_download, int ram_kb);
 void EMU8000_ShutDown(void);
 
 #endif

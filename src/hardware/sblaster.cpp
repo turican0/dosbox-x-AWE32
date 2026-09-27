@@ -1872,6 +1872,10 @@ void SB_INFO::CTMIXER_UpdateVolumes(void) {
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.dac[0]), m1 * calc_vol(mixer.dac[1]));
 	chan = MIXER_FindChannel("FM");
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.fm[0]) , m1 * calc_vol(mixer.fm[1]) );
+	if (awe) { /* AWE32: the EMU8000 is mixed into the MIDI input, together with the OPL */
+		chan = MIXER_FindChannel(EMU8000_MIXER_CHANNEL);
+		if (chan) chan->SetVolume(m0 * calc_vol(mixer.fm[0]) , m1 * calc_vol(mixer.fm[1]) );
+	}
 	chan = MIXER_FindChannel("CDAUDIO");
 	if (chan) chan->SetVolume(m0 * calc_vol(mixer.cda[0]), m1 * calc_vol(mixer.cda[1]));
 }
@@ -2394,7 +2398,7 @@ is responsible for some failures such as [https://github.com/joncampbell123/dosb
 					break;
 				case SBT_16:
 					if (vibra || awe) {
-						DSP_AddData(4); /* SB16 ViBRA / AWE32 DSP 4.13 (TODO: verify the AWE32 value on real hardware) */
+						DSP_AddData(4); /* SB16 ViBRA / AWE32 DSP 4.13 (read from a real AWE32 CT3990) */
 						DSP_AddData(13);
 					}
 					else {
@@ -4293,7 +4297,13 @@ class SBLASTER: public Module_base {
 			}
 
 			/* Sound Blaster AWE32: EMU8000 wavetable synth at base+400h/800h/C00h (620h/A20h/E20h for base 220h) */
-			if (sb[ci].awe) EMU8000_Init(sb[ci].hw.base);
+			if (sb[ci].awe) {
+				int ram_kb = section->Get_int("awe32ram");
+				if (ram_kb < 0) ram_kb = 512;
+				EMU8000_Init(sb[ci].hw.base, section->Get_string("awe32rom"),
+					section->Get_string("awe32romdownload"), ram_kb);
+				sb[ci].CTMIXER_UpdateVolumes();
+			}
 
 			// TODO: read/write handler for ESS AudioDrive ES1688 (and later) MPU-401 ports (3x0h/3x1h; prevents Windows drivers from working with default settings if missing)
 

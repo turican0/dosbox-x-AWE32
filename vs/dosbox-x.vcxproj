@@ -1493,6 +1493,11 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\RetroWaveLib\Platform\Win32_SerialPort.c" />
     <ClCompile Include="..\src\hardware\sblaster.cpp" />
     <ClCompile Include="..\src\hardware\emu8000.cpp" />
+    <ClCompile Include="..\src\hardware\awe32_rom.cpp" />
+    <ClCompile Include="..\src\hardware\emu8k\snd_emu8k.c">
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src\hardware\emu8k\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DisableSpecificWarnings>4244;4267;4996;4018;4101;4133;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\mic_input_win32.cpp" />
     <ClCompile Include="..\src\hardware\serialport\directserial.cpp" />
     <ClCompile Include="..\src\hardware\serialport\libserial.cpp" />
@@ -1835,6 +1840,8 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\hardware\esfmu\esfm.h" />
     <ClInclude Include="..\src\hardware\hardopl.h" />
     <ClInclude Include="..\src\hardware\emu8000.h" />
+    <ClInclude Include="..\src\hardware\awe32_rom.h" />
+    <ClInclude Include="..\src\hardware\emu8k\include\86box\snd_emu8k.h" />
     <ClInclude Include="..\src\hardware\mic_input_win32.h" />
     <ClInclude Include="..\src\hardware\mame\emu.h" />
     <ClInclude Include="..\src\hardware\mame\fmopl.h" />

@@ -1,14 +1,16 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcdir)/src/hardware/snd_pc98/sound -I$(top_srcdir)/src/hardware/snd_pc98/common -I$(top_srcdir)/src/hardware/snd_pc98/generic -I$(top_srcdir)/src/hardware/snd_pc98/sound/getsnd -I$(top_srcdir)/src/hardware/snd_pc98/x11 -I$(top_srcdir)/src/hardware/snd_pc98/cbus -I$(top_srcdir)/src
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcdir)/src/hardware/snd_pc98/sound -I$(top_srcdir)/src/hardware/snd_pc98/common -I$(top_srcdir)/src/hardware/snd_pc98/generic -I$(top_srcdir)/src/hardware/snd_pc98/sound/getsnd -I$(top_srcdir)/src/hardware/snd_pc98/x11 -I$(top_srcdir)/src/hardware/snd_pc98/cbus -I$(top_srcdir)/src \
+	      -I$(top_srcdir)/src/hardware/emu8k/include
 
 SUBDIRS = serialport parport reSID mame
 
-EXTRA_DIST = opl.cpp opl.h adlib.h dbopl.h hardopl.h emu8000.h pci_devices.h voodoo_types.h voodoo_def.h voodoo_data.h \
+EXTRA_DIST = opl.cpp opl.h adlib.h dbopl.h hardopl.h emu8000.h awe32_rom.h emu8k/README.md emu8k/include/86box/86box.h emu8k/include/86box/awe32_trace.h emu8k/include/86box/device.h emu8k/include/86box/io.h emu8k/include/86box/mem.h emu8k/include/86box/plat_unused.h emu8k/include/86box/rom.h emu8k/include/86box/snd_emu8k.h emu8k/include/86box/snd_emu8k_trace.h emu8k/include/86box/sound.h emu8k/include/86box/timer.h \
+             pci_devices.h voodoo_types.h voodoo_def.h voodoo_data.h \
              voodoo_interface.h voodoo_emu.h voodoo_vogl.h voodoo_opengl.h mic_input_win32.h
 
 noinst_LIBRARIES = libhardware.a
 
 libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp imfc.cpp iohandler.cpp joystick.cpp keyboard.cpp \
-			memory.cpp mixer.cpp pcspeaker.cpp pci_bus.cpp pic.cpp sblaster.cpp emu8000.cpp tandy_sound.cpp timer.cpp \
+			memory.cpp mixer.cpp pcspeaker.cpp pci_bus.cpp pic.cpp sblaster.cpp emu8000.cpp awe32_rom.cpp emu8k/snd_emu8k.c tandy_sound.cpp timer.cpp \
 			vga.cpp vga_attr.cpp vga_crtc.cpp vga_dac.cpp vga_draw.cpp vga_gfx.cpp vga_other.cpp \
 			vga_memory.cpp vga_misc.cpp vga_seq.cpp vga_xga.cpp vga_s3.cpp vga_tseng.cpp vga_paradise.cpp \
 			cmos.cpp cqm.c disney.cpp gus.cpp mpu401.cpp ipx.cpp ipxserver.cpp ne2000.cpp hardopl.cpp dbopl.cpp innova.cpp dongle.cpp \

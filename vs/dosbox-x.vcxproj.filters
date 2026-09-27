@@ -474,6 +474,12 @@
     <ClCompile Include="..\src\hardware\emu8000.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\awe32_rom.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\emu8k\snd_emu8k.c">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\tandy_sound.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -1848,6 +1854,12 @@
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\emu8000.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\awe32_rom.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\emu8k\include\86box\snd_emu8k.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\nukedopl.h">
