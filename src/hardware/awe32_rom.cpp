@@ -345,9 +345,10 @@ std::string AWE32ROM_Locate(const std::string &configured, const std::string &do
 	else target = ROM_DIR;
 
 	asked_this_session = true;
+	/* no dialogs in silent/test runs */
+	const bool interactive = !(control != NULL && (control->opt_silent || control->opt_test));
 	if (download_mode != "yes") {
-		/* no dialog in silent/test runs */
-		if (control != NULL && (control->opt_silent || control->opt_test)) return std::string();
+		if (!interactive) return std::string();
 		const std::string q = Format(MSG_Get("AWE32ROM_ASK"), AWE32ROM_URL, target);
 		if (!systemmessagebox(MSG_Get("AWE32ROM_TITLE"), q.c_str(), "yesno", "question", 1))
 			return std::string();
@@ -359,7 +360,9 @@ std::string AWE32ROM_Locate(const std::string &configured, const std::string &do
 		return path;
 	}
 	LOG_MSG("AWE32: wave ROM download failed: %s", err.c_str());
-	const std::string msg = Format(MSG_Get("AWE32ROM_FAILED"), err, AWE32ROM_URL);
-	systemmessagebox(MSG_Get("AWE32ROM_TITLE"), msg.c_str(), "ok", "error", 1);
+	if (interactive) {
+		const std::string msg = Format(MSG_Get("AWE32ROM_FAILED"), err, AWE32ROM_URL);
+		systemmessagebox(MSG_Get("AWE32ROM_TITLE"), msg.c_str(), "ok", "error", 1);
+	}
 	return std::string();
 }
