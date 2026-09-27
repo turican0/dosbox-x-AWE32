@@ -10,7 +10,7 @@ jobs:
   Linux_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
-      contents: read  # for actions/checkout to fetch code
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
@@ -89,11 +89,19 @@ jobs:
           cp $top/contrib/windows/installer/drivez_readme.txt $top/src/bin/drivez/readme.txt
           cp $top/contrib/glshaders/* $top/src/bin/glshaders/
           cp $top/contrib/translations/*/*.lng $top/src/bin/languages/
+          cd $top/src/bin
+          zip -r -9 "$top/dosbox-x-linux-x86_64-${{ env.timestamp }}.zip" *
       - name: Upload preview package
         uses: actions/upload-artifact@v7.0.1
         with:
           name: dosbox-x-linux-x86_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/src/bin/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v3
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-linux-x86_64-${{ env.timestamp }}.zip
+
   Test_Linux_Preview:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
