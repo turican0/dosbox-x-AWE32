@@ -17,6 +17,10 @@ measurements, so all three produce the same sound for the same register writes.
 Downloads: [releases of this fork](https://github.com/turican0/dosbox-x-AWE32/releases)
 (Windows, Linux, macOS, MinGW, HX-DOS builds).
 
+Related project: [AWE32Emu](https://github.com/turican0/AWE32Emu) - the same EMU8000
+as a standalone `.mid` / `.xmi` player with the logic of Creative's drivers, the
+measurements against the real card and the tools behind them.
+
 ## Quick start
 
 1. Run DOSBox-X. The first Sound Blaster is an AWE32 already.
