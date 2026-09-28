@@ -1,45 +1,102 @@
+# DOSBox-X AWE32
 
-**Welcome to the DOSBox-X project homepage located on GitHub.**
+**DOSBox-X with a Sound Blaster AWE32 - the EMU8000 wavetable synthesizer included.**
 
-**This is a fork of DOSBox-X with Sound Blaster AWE32 support.**
+This is a fork of [DOSBox-X](https://github.com/joncampbell123/dosbox-x). DOSBox-X
+emulates the Sound Blaster up to the SB16, but not the AWE32: the card is an SB16
+plus Creative's EMU8000 wavetable synthesizer, and games with an AWE32 driver
+(for example Magic Carpet 2) need that chip. This fork adds it. Everything else is DOSBox-X - the rest of this README is
+the original one.
 
-### Sound Blaster AWE32
+The synthesizer is the chip of the [AWE32Emu](https://github.com/turican0/AWE32Emu)
+project: the EMU8000 of [86Box](https://github.com/86Box/86Box) with the filter,
+envelopes, interpolation, reverb, chorus, equaliser and output level measured on a
+real AWE32. The same code runs in AWE32Emu and in the 86Box build used for the
+measurements, so all three produce the same sound for the same register writes.
 
-The first Sound Blaster is an AWE32 by default (`sbtype=sbawe` in `[sblaster]`), set up
-as a PC with the Creative drivers installed:
+Downloads: [releases of this fork](https://github.com/turican0/dosbox-x-AWE32/releases)
+(Windows, Linux, macOS, MinGW, HX-DOS builds).
 
-- the SB16 part (DSP 4.13, CT1745 mixer) plus the EMU8000 wavetable synth at
-  base+400h/800h/C00h (620h/A20h/E20h for base 220h), IRQ 5, DMA 1, high DMA 5;
-- `SET BLASTER=A220 I5 D1 H5 P330 E620 T6` and `AWEUTIL /S` in the AUTOEXEC.BAT of
-  DOSBox-X. `Z:\BIN\AWEUTIL.COM` initialises the EMU8000 with exactly the writes of
-  Creative's `AWEUTIL /S` (after power-on the chip is muted);
-- setup programs that read `C:\AUTOEXEC.BAT` (Miles SETSOUND looks for `AWEUTIL`
-  there to offer the AWE32 driver) get the AUTOEXEC.BAT of DOSBox-X when the mounted
-  C: has none (read-only, nothing is written to the folder).
+## Quick start
 
-DOS programs then drive the card with their own drivers, as on the real one (a game
-with its AWE32 driver, DOSMid `/awe`, ...). The user configuration of this build is
-`dosbox-x-<version>-AWE32.conf`, separate from DOSBox-X of the same version.
+1. Run DOSBox-X. The first Sound Blaster is an AWE32 already.
+2. The first time, DOSBox-X asks whether to download the wave ROM of the card
+   (`awe32.raw`, 1 MB - it is Creative's and not included). Answer **Yes**.
+3. In a game's sound setup choose the AWE32 (or "Sound Blaster 16 or AWE32" for
+   digital audio). Setup programs find it on their own, as on a PC with the card.
 
-The EMU8000 is the chip of the [AWE32Emu](https://github.com/turican0/AWE32Emu) project:
-the EMU8000 of 86Box with filter, envelopes, interpolation, reverb, chorus, equaliser and
-output level measured on a real AWE32 (`src/hardware/emu8k/`). Its output is the mixer
-channel `AWE32` and follows the MIDI volume of the SB16 mixer.
+## Differences from DOSBox-X
+
+| | DOSBox-X | this fork |
+|---|---|---|
+| Sound Blaster types | SB1 .. SB16, SB16 ViBRA, ESS, ... | the same **plus `sbtype=sbawe`** (Sound Blaster AWE32) |
+| default card | `sbtype=sb16`, IRQ 7 | **`sbtype=sbawe`, IRQ 5** (the AWE32 factory setting) |
+| wavetable synth | none | **EMU8000** at base+400h/800h/C00h (620h/A20h/E20h for base 220h): 32 voices, ROM + sample RAM, reverb, chorus, EQ |
+| DSP version | 4.05 for the SB16 | 4.13 for the AWE32 (as read from a real card) |
+| `BLASTER` | `A220 I7 D1 H5 P330 T6` | `A220 I5 D1 H5 P330 E620 T6` - with the EMU8000 address, in the order the Creative install writes it |
+| AUTOEXEC.BAT | `SET BLASTER` | `SET BLASTER` **and `AWEUTIL /S`**, which initialises the EMU8000 (it is muted after power-on) |
+| `Z:\BIN\AWEUTIL.COM` | - | new: `/S` performs exactly the register writes of Creative's `AWEUTIL /S` |
+| reading `C:\AUTOEXEC.BAT` | only when the file exists on the mounted C: | when C: has none, a program reading it gets the AUTOEXEC.BAT of DOSBox-X (read-only; setup programs such as Miles SETSOUND look there for `AWEUTIL` to offer the AWE32 driver) |
+| mixer | `SB`, `FM`, ... | also **`AWE32`**, controlled by the MIDI volume of the SB16 mixer, as on the card |
+| new options in `[sblaster]` | - | `awe32rom`, `awe32ram` (see below) |
+| wave ROM | - | looked up in `AWE32ROM/awe32.raw`; if missing, DOSBox-X asks whether to download it (Yes/No) |
+| user configuration | `dosbox-x-<version>.conf` | `dosbox-x-<version>-AWE32.conf`, so the two builds do not share settings |
+| debugging | - | `EMU8K_TRACE=<file>` records the EMU8000 port accesses |
+
+Nothing changes for other cards: with `sbtype=sb16` (or any other) DOSBox-X behaves
+as the original, except for the `C:\AUTOEXEC.BAT` fallback and the default IRQ.
+
+## Options
+
+In the `[sblaster]` section, used with `sbtype=sbawe`:
 
 | option | meaning |
 |---|---|
-| `awe32rom` | path to the wave ROM `awe32.raw` (1 MB); empty = `AWE32ROM/awe32.raw` next to the executable, in the configuration directory or in the current directory |
+| `awe32rom` | path to the wave ROM `awe32.raw` (1 MB). Empty (default) = `AWE32ROM/awe32.raw` next to the executable, in the DOSBox-X configuration directory or in the current directory |
 | `awe32ram` | sample RAM in KB: 512 (on board, default), 2048, 4096, 8192, 16384, 28672 |
 
-**The wave ROM is not included** (it is Creative's). When it is not found, DOSBox-X asks
-whether to download `awe32.raw` from
-[libretro-pcem](https://github.com/libretro/libretro-pcem/blob/master/awe32.raw) into the
-folder `AWE32ROM` (answer Yes/No). The downloaded file is used only when its size and
-SHA-256 match the known image. Without the ROM the chip still works, but its General MIDI
-sounds are silent.
+**The wave ROM.** When it is not found, DOSBox-X asks whether to download `awe32.raw`
+from [libretro-pcem](https://github.com/libretro/libretro-pcem/blob/master/awe32.raw),
+showing the source and the target folder. Nothing is downloaded without **Yes**, and
+the file is kept only when its size and SHA-256 match the known image. It is saved to
+`AWE32ROM` next to the executable, or in the configuration directory when that is not
+writable. Without the ROM the chip still works, but its General MIDI sounds are
+silent.
 
-For debugging, `EMU8K_TRACE=<file>` records every EMU8000 port write in the trace format of
-AWE32Emu (`AWE32Emu --replay`), so a DOSBox-X run can be replayed and compared outside it.
+## How it works
+
+DOS programs drive the card through their own drivers, exactly as on a real AWE32 -
+DOSBox-X only emulates the hardware. The EMU8000 is rendered at 44100 Hz and brought
+up to the emulated time on every port access, so each register write lands at its own
+sample and the chip's sample counter, which drivers use for their delays, advances one
+sample at a time, as on the card.
+
+Tested: Creative `AWEUTIL /S`, Miles SETSOUND of Magic Carpet 2 (AWE-32 General MIDI
+and "Sound Blaster 16 or AWE32" found automatically), DOSMid `/awe` (the output is
+bit-identical to AWE32Emu replaying the same port writes).
+
+## Limitations
+
+- Only the first Sound Blaster can be an AWE32, and only in IBM PC mode (not PC-98).
+- The AWE32 is the non-PnP model; there is no ISA PnP device for it.
+- `AWEUTIL` supports only `/S`. The MIDI emulation of Creative's AWEUTIL (`/EM:GM`,
+  General MIDI through the MPU-401 port via NMI) is not there, so games that know only
+  MPU-401 General MIDI do not play through the AWE32.
+- The EMU8000 state is not part of save states.
+
+## Source
+
+`src/hardware/emu8000.cpp` (ports, timing, mixer, `AWEUTIL`), `src/hardware/emu8k/`
+(the chip, a byte-identical copy of AWE32Emu's `snd_emu8k.c`),
+`src/hardware/awe32_rom.cpp` (ROM search and download), `src/hardware/awe32_aweutil.h`
+(the `AWEUTIL /S` writes). The EMU8000 code comes from 86Box and, like DOSBox-X, is
+licensed under the GNU GPL, version 2 or later.
+
+---
+
+**The original DOSBox-X README follows.**
+
+**Welcome to the DOSBox-X project homepage located on GitHub.**
 
 ## Useful links
 - [DOSBox-X's website](https://dosbox-x.com) ([https://dosbox-x.com](https://dosbox-x.com) or [http://dosbox-x.software](http://dosbox-x.software))  
