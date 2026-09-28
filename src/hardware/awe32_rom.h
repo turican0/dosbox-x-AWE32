@@ -28,12 +28,12 @@
  *   3. AWE32ROM/awe32.raw in the DOSBox-X configuration directory
  *   4. AWE32ROM/awe32.raw in the current directory
  *
- * When none is found, the option awe32romdownload= decides: "ask" (default)
- * asks the user whether to download it into AWE32ROM/ (next to the
- * executable, or in the configuration directory when that one is not
- * writable), "yes" downloads without asking, "no" never downloads. A
- * downloaded file is kept only when its size and SHA-256 match the known
- * ROM image. */
+ * When none is found, the user is asked (Yes/No) whether to download it,
+ * with the file name, the source URL and the target path in the question.
+ * It is saved to AWE32ROM/ next to the executable, or in the configuration
+ * directory when that one is not writable. Nothing is downloaded without a
+ * "Yes"; the question comes once per session. A downloaded file is kept only
+ * when its size and SHA-256 match the known ROM image. */
 
 /* The known image (1048576 bytes). */
 extern const char *AWE32ROM_URL;
@@ -44,6 +44,6 @@ void AWE32ROM_AddMessages(void);
 
 /* Returns the path of a usable ROM, or an empty string when there is none
  * (not found and not downloaded). */
-std::string AWE32ROM_Locate(const std::string &configured, const std::string &download_mode);
+std::string AWE32ROM_Locate(const std::string &configured);
 
 #endif

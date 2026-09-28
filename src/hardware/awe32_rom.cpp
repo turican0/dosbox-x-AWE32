@@ -288,16 +288,23 @@ std::string Format(const char *fmt, const std::string &a, const std::string &b) 
 	return std::string(buf.data());
 }
 
+std::string Format3(const char *fmt, const std::string &a, const std::string &b, const std::string &c) {
+	std::vector<char> buf(strlen(fmt) + a.size() + b.size() + c.size() + 16);
+	snprintf(buf.data(), buf.size(), fmt, a.c_str(), b.c_str(), c.c_str());
+	return std::string(buf.data());
+}
+
 } // anonymous namespace
 
 void AWE32ROM_AddMessages(void) {
 	MSG_Add("AWE32ROM_TITLE", "Sound Blaster AWE32 wave ROM");
 	MSG_Add("AWE32ROM_ASK",
-		"The Sound Blaster AWE32 emulation (sbtype=sbawe) needs the wave ROM of the "
-		"EMU8000 chip (awe32.raw, 1 MB). It is not distributed with DOSBox-X.\n\n"
-		"Download it now from\n%s\ninto\n%s ?\n\n"
-		"Without it the AWE32 plays only sounds that programs load into its RAM; "
-		"the General MIDI sounds of the ROM stay silent.");
+		"Do you want to download the ROM for the Sound Blaster AWE32 named %s\n"
+		"from\n%s\n"
+		"and save it to\n%s ?\n\n"
+		"The ROM (1 MB) is not distributed with DOSBox-X. Without it the AWE32 plays only "
+		"sounds that programs load into its RAM; the General MIDI sounds of the ROM stay silent.\n\n"
+		"(Y/N)");
 	MSG_Add("AWE32ROM_FAILED",
 		"The AWE32 wave ROM could not be downloaded:\n%s\n\n"
 		"You can download awe32.raw yourself from\n%s\n"
@@ -307,7 +314,7 @@ void AWE32ROM_AddMessages(void) {
 		"The downloaded file is not the expected AWE32 wave ROM (the size or the SHA-256 checksum does not match).");
 }
 
-std::string AWE32ROM_Locate(const std::string &configured, const std::string &download_mode) {
+std::string AWE32ROM_Locate(const std::string &configured) {
 	AWE32ROM_AddMessages();
 
 	if (!configured.empty()) {
@@ -334,8 +341,8 @@ std::string AWE32ROM_Locate(const std::string &configured, const std::string &do
 		}
 	}
 
-	/* Not found: download? */
-	if (download_mode == "no" || asked_this_session) return std::string();
+	/* Not found: ask whether to download it. */
+	if (asked_this_session) return std::string();
 
 	/* Next to the executable, as the other files of this build; the
 	 * configuration directory when that one is read-only (installed builds). */
@@ -345,13 +352,13 @@ std::string AWE32ROM_Locate(const std::string &configured, const std::string &do
 	else target = ROM_DIR;
 
 	asked_this_session = true;
-	/* no dialogs in silent/test runs */
-	const bool interactive = !(control != NULL && (control->opt_silent || control->opt_test));
-	if (download_mode != "yes") {
-		if (!interactive) return std::string();
-		const std::string q = Format(MSG_Get("AWE32ROM_ASK"), AWE32ROM_URL, target);
-		if (!systemmessagebox(MSG_Get("AWE32ROM_TITLE"), q.c_str(), "yesno", "question", 1))
-			return std::string();
+	/* Nothing is downloaded without the user's answer; silent/test runs
+	 * cannot ask, so they go without the ROM. */
+	if (control != NULL && (control->opt_silent || control->opt_test)) return std::string();
+	const std::string q = Format3(MSG_Get("AWE32ROM_ASK"), ROM_FILE, AWE32ROM_URL, Join(target, ROM_FILE));
+	if (!systemmessagebox(MSG_Get("AWE32ROM_TITLE"), q.c_str(), "yesno", "question", 0)) {
+		LOG_MSG("AWE32: the user declined the wave ROM download");
+		return std::string();
 	}
 
 	std::string path, err;
@@ -360,9 +367,7 @@ std::string AWE32ROM_Locate(const std::string &configured, const std::string &do
 		return path;
 	}
 	LOG_MSG("AWE32: wave ROM download failed: %s", err.c_str());
-	if (interactive) {
-		const std::string msg = Format(MSG_Get("AWE32ROM_FAILED"), err, AWE32ROM_URL);
-		systemmessagebox(MSG_Get("AWE32ROM_TITLE"), msg.c_str(), "ok", "error", 1);
-	}
+	const std::string msg = Format(MSG_Get("AWE32ROM_FAILED"), err, AWE32ROM_URL);
+	systemmessagebox(MSG_Get("AWE32ROM_TITLE"), msg.c_str(), "ok", "error", 1);
 	return std::string();
 }

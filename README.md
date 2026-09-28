@@ -1,7 +1,35 @@
 
 **Welcome to the DOSBox-X project homepage located on GitHub.**
 
-**This is a fork of Dosbox-x with AWE32 support; AWE32 support isn't included yet, but I'm working on it.**
+**This is a fork of DOSBox-X with Sound Blaster AWE32 support.**
+
+### Sound Blaster AWE32
+
+Set `sbtype=sbawe` in the `[sblaster]` section. The card is emulated as on a real
+AWE32: the SB16 part (DSP 4.13, CT1745 mixer) plus the EMU8000 wavetable synth at
+base+400h/800h/C00h (620h/A20h/E20h for base 220h), `E620` in the BLASTER variable.
+DOS programs drive it with their own drivers, exactly as on the card (for example
+`AWEUTIL /S` in AUTOEXEC.BAT, then a game with its AWE32 driver, or DOSMid `/awe`).
+
+The EMU8000 is the chip of the [AWE32Emu](https://github.com/turican0/AWE32Emu) project:
+the EMU8000 of 86Box with filter, envelopes, interpolation, reverb, chorus, equaliser and
+output level measured on a real AWE32 (`src/hardware/emu8k/`). Its output is the mixer
+channel `AWE32` and follows the MIDI volume of the SB16 mixer.
+
+| option | meaning |
+|---|---|
+| `awe32rom` | path to the wave ROM `awe32.raw` (1 MB); empty = `AWE32ROM/awe32.raw` next to the executable, in the configuration directory or in the current directory |
+| `awe32ram` | sample RAM in KB: 512 (on board, default), 2048, 4096, 8192, 16384, 28672 |
+
+**The wave ROM is not included** (it is Creative's). When it is not found, DOSBox-X asks
+whether to download `awe32.raw` from
+[libretro-pcem](https://github.com/libretro/libretro-pcem/blob/master/awe32.raw) into the
+folder `AWE32ROM` (answer Yes/No). The downloaded file is used only when its size and
+SHA-256 match the known image. Without the ROM the chip still works, but its General MIDI
+sounds are silent.
+
+For debugging, `EMU8K_TRACE=<file>` records every EMU8000 port write in the trace format of
+AWE32Emu (`AWE32Emu --replay`), so a DOSBox-X run can be replayed and compared outside it.
 
 ## Useful links
 - [DOSBox-X's website](https://dosbox-x.com) ([https://dosbox-x.com](https://dosbox-x.com) or [http://dosbox-x.software](http://dosbox-x.software))  

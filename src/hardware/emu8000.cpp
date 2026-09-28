@@ -304,9 +304,9 @@ void EMU8000_Device::Mix(Bitu len) {
 
 } // anonymous namespace
 
-void EMU8000_Init(unsigned int sb_base, const std::string &rom_path, const std::string &rom_download, int ram_kb) {
+void EMU8000_Init(unsigned int sb_base, const std::string &rom_path, int ram_kb) {
 	EMU8000_ShutDown();
-	const std::string rom = AWE32ROM_Locate(rom_path, rom_download);
+	const std::string rom = AWE32ROM_Locate(rom_path);
 	emu8000 = new EMU8000_Device(sb_base, rom, ram_kb);
 }
 

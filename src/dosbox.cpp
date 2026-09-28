@@ -3782,23 +3782,15 @@ void DOSBOX_SetupConfigSections(void) {
 			Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,def_sbtype[ci]);//"sb16"
 			Pstring->Set_values(sbtypes);
 			Pstring->Set_help("Type of Sound Blaster to emulate. 'gb' is Game Blaster. 'sbawe' is Sound Blaster AWE32 (SB16 with the EMU8000 wavetable synth,\n"
-					"see the options awe32rom, awe32romdownload and awe32ram).");
+					"see the options awe32rom and awe32ram).");
 			Pstring->SetBasic(true);
 
 			Pstring = secprop->Add_string("awe32rom",Property::Changeable::WhenIdle,"");
 			Pstring->Set_help("Path to the wave ROM of the Sound Blaster AWE32 (awe32.raw, the 1 MB raw image of the EMU8000 ROM).\n"
 					"If empty, AWE32ROM/awe32.raw is looked up next to the DOSBox-X executable, in the DOSBox-X configuration\n"
-					"directory and in the current directory. Used with sbtype=sbawe.");
+					"directory and in the current directory. When it is not found, DOSBox-X asks whether to download it\n"
+					"(the ROM is not distributed with DOSBox-X). Used with sbtype=sbawe.");
 			Pstring->SetBasic(true);
-
-			const char* awe32romdl[] = { "ask", "yes", "no", nullptr };
-			Pstring = secprop->Add_string("awe32romdownload",Property::Changeable::WhenIdle,"ask");
-			Pstring->Set_values(awe32romdl);
-			Pstring->Set_help("What to do when sbtype=sbawe and the AWE32 wave ROM is not found. The ROM is not distributed with DOSBox-X.\n"
-					"  ask: ask whether to download it into the folder AWE32ROM (next to the executable, or in the configuration directory).\n"
-					"  yes: download it without asking.\n"
-					"  no:  never download; the EMU8000 then runs with an empty ROM (its General MIDI sounds are silent).\n"
-					"A downloaded file is used only when its size and SHA-256 checksum match the known ROM image.");
 
 			const char* awe32rams[] = { "512", "2048", "4096", "8192", "16384", "28672", nullptr };
 			Pint = secprop->Add_int("awe32ram",Property::Changeable::WhenIdle,512);

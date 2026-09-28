@@ -42,9 +42,8 @@
 
 /* sb_base: I/O base of the Sound Blaster card the EMU8000 is attached to
  * rom_path: awe32rom= setting (empty = search, see awe32_rom.h)
- * rom_download: awe32romdownload= setting (ask, yes, no)
  * ram_kb: sample DRAM on the card in KB (awe32ram=) */
-void EMU8000_Init(unsigned int sb_base, const std::string &rom_path, const std::string &rom_download, int ram_kb);
+void EMU8000_Init(unsigned int sb_base, const std::string &rom_path, int ram_kb);
 void EMU8000_ShutDown(void);
 
 #endif

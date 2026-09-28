@@ -19,7 +19,8 @@ tree used for the measurements) and copy it over; do not edit it here.
 
 **Wave ROM.** The chip needs the 1 MB ROM image `awe32.raw`, which is
 Creative's and not part of DOSBox-X; see `../awe32_rom.h` and the options
-`awe32rom`, `awe32romdownload` and `awe32ram` in the `[sblaster]` section.
+`awe32rom` and `awe32ram` in the `[sblaster]` section; when the ROM is
+missing, DOSBox-X asks (Yes/No) whether to download it.
 
 **License:** 86Box, and so this file, is licensed under the GNU General Public
 License, version 2 or later.

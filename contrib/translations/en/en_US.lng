@@ -5260,6 +5260,31 @@ Show IDE disk or CD status
 :MENU:pc98_use_uskb
 Use US keyboard layout
 .
+:AWE32ROM_TITLE
+Sound Blaster AWE32 wave ROM
+.
+:AWE32ROM_ASK
+Do you want to download the ROM for the Sound Blaster AWE32 named %s
+from
+%s
+and save it to
+%s ?
+
+The ROM (1 MB) is not distributed with DOSBox-X. Without it the AWE32 plays only sounds that programs load into its RAM; the General MIDI sounds of the ROM stay silent.
+
+(Y/N)
+.
+:AWE32ROM_FAILED
+The AWE32 wave ROM could not be downloaded:
+%s
+
+You can download awe32.raw yourself from
+%s
+and put it into the folder AWE32ROM next to DOSBox-X, or set its path with the option awe32rom= in the [sblaster] section.
+.
+:AWE32ROM_BADFILE
+The downloaded file is not the expected AWE32 wave ROM (the size or the SHA-256 checksum does not match).
+.
 :MAPPER:capnetrf
 Record Network traffic
 .

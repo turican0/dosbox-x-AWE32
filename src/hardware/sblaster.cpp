@@ -89,6 +89,7 @@
 #include "shell.h"
 #include "hardopl.h"
 #include "emu8000.h"
+#include "awe32_rom.h"
 using namespace std;
 
 #ifdef WIN32
@@ -4300,8 +4301,7 @@ class SBLASTER: public Module_base {
 			if (sb[ci].awe) {
 				int ram_kb = section->Get_int("awe32ram");
 				if (ram_kb < 0) ram_kb = 512;
-				EMU8000_Init(sb[ci].hw.base, section->Get_string("awe32rom"),
-					section->Get_string("awe32romdownload"), ram_kb);
+				EMU8000_Init(sb[ci].hw.base, section->Get_string("awe32rom"), ram_kb);
 				sb[ci].CTMIXER_UpdateVolumes();
 			}
 
@@ -4640,6 +4640,8 @@ void SBLASTER_DOS_Boot(Section *sec) {
 
 void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
+
+	AWE32ROM_AddMessages();	/* messages of the AWE32 ROM download (sbtype=sbawe) */
 
 #if defined(_MSC_VER) || defined(__MINGW64__)
 	// Initialize microphone input for recording support
