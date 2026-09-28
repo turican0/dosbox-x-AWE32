@@ -84,6 +84,13 @@ bit-identical to AWE32Emu replaying the same port writes).
   MPU-401 General MIDI do not play through the AWE32.
 - The EMU8000 state is not part of save states.
 
+## Thanks
+
+Many thanks to **Mysterium Xerxes** (orzipan), who patiently recorded a real Sound
+Blaster AWE32 again and again - test program after test program, the games, the line
+output and the card's own capture. Every measured detail of the EMU8000 in this fork
+comes from those recordings.
+
 ## Source
 
 `src/hardware/emu8000.cpp` (ports, timing, mixer, `AWEUTIL`), `src/hardware/emu8k/`
