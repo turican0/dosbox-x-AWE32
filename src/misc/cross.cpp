@@ -217,14 +217,18 @@ std::string Cross::GetPlatformConfigName()
 {
     std::string name;
 
+/* AWE32 fork: a user configuration of its own ("-AWE32"). The file is read at
+ * every start before everything else; sharing it with DOSBox-X of the same
+ * version would carry over settings written by the other build (sbtype=sb16)
+ * instead of this build's defaults (sbtype=sbawe). */
 #ifdef WIN32
-#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
+#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION "-AWE32.conf"
 #elif defined(MACOSX)
-#define DEFAULT_CONFIG_FILE "DOSBox-X " VERSION " Preferences"
+#define DEFAULT_CONFIG_FILE "DOSBox-X " VERSION " AWE32 Preferences"
 #elif defined(OS2) && defined(C_SDL2)
-#define DEFAULT_CONFIG_FILE "dosbox-x-" PACKAGE_VERSION ".conf"
+#define DEFAULT_CONFIG_FILE "dosbox-x-" PACKAGE_VERSION "-AWE32.conf"
 #else /* linux, freebsd */
-#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION ".conf"
+#define DEFAULT_CONFIG_FILE "dosbox-x-" VERSION "-AWE32.conf"
 #endif
 
     name = DEFAULT_CONFIG_FILE;

@@ -3913,6 +3913,7 @@ class SBLASTER: public Module_base {
 		IO_WriteHandleObject WriteHandler[0x10];
 #if !defined(OSFREE)
 		AutoexecObject autoexecline;
+		AutoexecObject aweutilline;	/* AWE32: AWEUTIL /S, as the Creative install puts it into AUTOEXEC.BAT */
 #endif
 		MixerObject MixerChan;
 		OPL_Mode oplmode;
@@ -4519,6 +4520,7 @@ ASP>
 		void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
 #if !defined(OSFREE)
 			autoexecline.Uninstall();
+			aweutilline.Uninstall();
 #endif
 		}
 
@@ -4547,11 +4549,20 @@ ASP>
 						temp << " P" << hex << baseio;
 					}
 				}
-				temp << " T" << static_cast<unsigned int>(sb[ci].type);
-				if (sb[ci].awe) temp << " E" << hex << static_cast<unsigned int>(sb[ci].hw.base + 0x400u); /* EMU8000 base */
+				/* AWE32: EMU8000 base, before T as the Creative install writes it
+				 * ("A220 I5 D1 H5 P330 E620 T6") */
+				if (sb[ci].awe) temp << " E" << hex << static_cast<unsigned int>(sb[ci].hw.base + 0x400u);
+				temp << " T" << dec << static_cast<unsigned int>(sb[ci].type);
 				temp << ends;
 
 				autoexecline.Install(temp.str());
+
+				/* On a PC with an AWE32, AUTOEXEC.BAT runs AWEUTIL /S, which
+				 * initialises the EMU8000 (it is muted after power-on). Setup
+				 * programs look for the string AWEUTIL there too (Miles
+				 * SETSOUND then offers the AWE32 driver). Z:\BIN\AWEUTIL.COM
+				 * does the same initialisation. */
+				if (sb[ci].awe) aweutilline.Install("@AWEUTIL /S");
 			}
 #endif
 		}

@@ -5,11 +5,21 @@
 
 ### Sound Blaster AWE32
 
-Set `sbtype=sbawe` in the `[sblaster]` section. The card is emulated as on a real
-AWE32: the SB16 part (DSP 4.13, CT1745 mixer) plus the EMU8000 wavetable synth at
-base+400h/800h/C00h (620h/A20h/E20h for base 220h), `E620` in the BLASTER variable.
-DOS programs drive it with their own drivers, exactly as on the card (for example
-`AWEUTIL /S` in AUTOEXEC.BAT, then a game with its AWE32 driver, or DOSMid `/awe`).
+The first Sound Blaster is an AWE32 by default (`sbtype=sbawe` in `[sblaster]`), set up
+as a PC with the Creative drivers installed:
+
+- the SB16 part (DSP 4.13, CT1745 mixer) plus the EMU8000 wavetable synth at
+  base+400h/800h/C00h (620h/A20h/E20h for base 220h), IRQ 5, DMA 1, high DMA 5;
+- `SET BLASTER=A220 I5 D1 H5 P330 E620 T6` and `AWEUTIL /S` in the AUTOEXEC.BAT of
+  DOSBox-X. `Z:\BIN\AWEUTIL.COM` initialises the EMU8000 with exactly the writes of
+  Creative's `AWEUTIL /S` (after power-on the chip is muted);
+- setup programs that read `C:\AUTOEXEC.BAT` (Miles SETSOUND looks for `AWEUTIL`
+  there to offer the AWE32 driver) get the AUTOEXEC.BAT of DOSBox-X when the mounted
+  C: has none (read-only, nothing is written to the folder).
+
+DOS programs then drive the card with their own drivers, as on the real one (a game
+with its AWE32 driver, DOSMid `/awe`, ...). The user configuration of this build is
+`dosbox-x-<version>-AWE32.conf`, separate from DOSBox-X of the same version.
 
 The EMU8000 is the chip of the [AWE32Emu](https://github.com/turican0/AWE32Emu) project:
 the EMU8000 of 86Box with filter, envelopes, interpolation, reverb, chorus, equaliser and

@@ -3,7 +3,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcd
 
 SUBDIRS = serialport parport reSID mame
 
-EXTRA_DIST = opl.cpp opl.h adlib.h dbopl.h hardopl.h emu8000.h awe32_rom.h emu8k/README.md emu8k/include/86box/86box.h emu8k/include/86box/awe32_trace.h emu8k/include/86box/device.h emu8k/include/86box/io.h emu8k/include/86box/mem.h emu8k/include/86box/plat_unused.h emu8k/include/86box/rom.h emu8k/include/86box/snd_emu8k.h emu8k/include/86box/snd_emu8k_trace.h emu8k/include/86box/sound.h emu8k/include/86box/timer.h \
+EXTRA_DIST = opl.cpp opl.h adlib.h dbopl.h hardopl.h emu8000.h awe32_rom.h awe32_aweutil.h emu8k/README.md emu8k/include/86box/86box.h emu8k/include/86box/awe32_trace.h emu8k/include/86box/device.h emu8k/include/86box/io.h emu8k/include/86box/mem.h emu8k/include/86box/plat_unused.h emu8k/include/86box/rom.h emu8k/include/86box/snd_emu8k.h emu8k/include/86box/snd_emu8k_trace.h emu8k/include/86box/sound.h emu8k/include/86box/timer.h \
              pci_devices.h voodoo_types.h voodoo_def.h voodoo_data.h \
              voodoo_interface.h voodoo_emu.h voodoo_vogl.h voodoo_opengl.h mic_input_win32.h
 

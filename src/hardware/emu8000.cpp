@@ -24,19 +24,22 @@
  * connects it to DOSBox-X: the I/O ports, the mixer channel and the timing.
  *
  * Timing. In 86Box the chip renders into a block of WTBUFLEN (980) frames at
- * 44100 Hz; every port write first brings the chip up to the current frame
- * (emu8k_update renders up to wavetable_pos_global). Here the mixer channel
- * callback renders, and a port access first calls FillUp(), which runs the
- * mixer - and so the chip - up to the current emulated time. The sample
- * counter (WC) that drivers use for delays therefore follows the emulated
- * time, and every register write lands at its own frame, as on the card.
- * The block is reset every 980 frames, as in 86Box.
+ * 44100 Hz and every port write first brings it up to the current frame
+ * (emu8k_update renders up to wavetable_pos_global, which a timer advances
+ * sample by sample). The same here: every port access renders the chip up to
+ * the emulated time (PIC), so each register write lands at its own frame, and
+ * the mixer callback only takes the finished samples (rendering ahead only by
+ * the few frames the mixer asks in advance). The sample counter WC, which
+ * drivers poll for their delays - AWEUTIL waits for exact values of it -
+ * follows the emulated time one sample at a time, as on the card. The block
+ * is reset every 980 frames, as in 86Box.
  *
  * Debugging: with the environment variable EMU8K_TRACE=<file> every port
  * write is recorded as "<frame> <port hex> <value hex>" (a byte write as the
  * word write the chip turns it into), frames counted at 44100 Hz from the
  * chip reset - the format of AWE32Emu (--replay) and of the instrumented
- * 86Box, so a run can be replayed and compared outside DOSBox-X.
+ * 86Box, so a run can be replayed and compared outside DOSBox-X. Reads are
+ * recorded too, as "R <frame> <port> <value>".
  */
 
 #include "dosbox.h"
@@ -46,12 +49,16 @@
 #include "pic.h"
 #include "emu8000.h"
 #include "awe32_rom.h"
+#include "awe32_aweutil.h"
+#include "programs.h"
+#include "callback.h"
 
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <vector>
 
 #if defined(WIN32)
 #include <windows.h>
@@ -153,30 +160,86 @@ public:
 	void Write(Bitu port, Bitu val, Bitu iolen);
 	void Mix(Bitu len);
 
-private:
-	/* Brings the chip up to the current emulated time. The mixer is run only
-	 * when at least one sample has passed since the last time, so a driver
-	 * uploading samples through SMLD does not run it on every write. */
-	void Sync(void) {
-		const pic_tickindex_t now = PIC_FullIndex();
-		if (now - last_sync >= sample_ms || now < last_sync) {
-			last_sync = now;
-			if (chan != NULL) chan->FillUp();
+	/* What Creative AWEUTIL /S writes to the chip, with its timing (see
+	 * awe32_aweutil.h). Runs from a DOS program: it waits for the chip clock
+	 * between the writes as AWEUTIL does, letting the emulation go on. */
+	void AweUtilInit(void) {
+		static const Bitu offset[6] = { 0x000, 0x002, 0x400, 0x402, 0x800, 0x802 };
+		uint64_t due = FramesNow();
+		for (size_t i = 0; i < sizeof(awe32_aweutil_init) / sizeof(awe32_aweutil_init[0]); i++) {
+			const AWE32_InitWrite &w = awe32_aweutil_init[i];
+			due += w.delay;
+			while (FramesNow() < due) CALLBACK_Idle();
+			IO_WriteW(base + offset[w.port], w.value);
 		}
+	}
+	unsigned int Base(void) const { return (unsigned int)base; }
+
+private:
+	/* Emulated time in chip frames (44100 Hz) since the reset. */
+	uint64_t FramesNow(void) const {
+		const pic_tickindex_t ms = PIC_FullIndex() - t0;
+		return ms > 0 ? (uint64_t)(ms * (EMU_RATE / 1000.0)) : 0;
+	}
+
+	/* Renders the chip up to `target` frames into the buffer the mixer takes
+	 * its samples from. */
+	void RenderTo(uint64_t target) {
+		while (rendered < target) {
+			const int start = emu->pos;
+			int n = WTBUFLEN - start;
+			if ((uint64_t)n > target - rendered) n = (int)(target - rendered);
+
+			wavetable_pos_global = start + n;
+			emu8k_update(emu);
+			out.insert(out.end(), &emu->buffer[start * 2], &emu->buffer[(start + n) * 2]);
+			rendered += (uint64_t)n;
+
+			if (emu->pos >= WTBUFLEN) emu8k_reset_buffer(emu);
+			wavetable_pos_global = emu->pos;
+		}
+		/* Nobody takes the samples (mixer paused): keep at most one second. */
+		const size_t keep = 2 * EMU_RATE;
+		if (out.size() - out_pos > keep) out_pos = out.size() - keep;
+		if (out_pos > 65536) {
+			out.erase(out.begin(), out.begin() + (ptrdiff_t)out_pos);
+			out_pos = 0;
+		}
+	}
+
+	/* Brings the chip up to the current emulated time. */
+	void Sync(void) {
+		RenderTo(FramesNow());
 	}
 
 	void Trace(Bitu port, Bitu val) {
 		if (trace != NULL)
-			fprintf(trace, "%llu %03X %04X\n", (unsigned long long)(frames_done + (uint64_t)emu->pos),
+			fprintf(trace, "%llu %03X %04X\n", (unsigned long long)rendered,
 				(unsigned int)port, (unsigned int)val);
 	}
 
+	/* Reads as "R <frame> <port> <value>" - what the program saw, e.g. during
+	 * the card detection. AWE32Emu --replay skips these lines. */
+	void TraceRead(Bitu port, Bitu val) {
+		if (trace != NULL)
+			fprintf(trace, "R %llu %03X %04X\n", (unsigned long long)rendered,
+				(unsigned int)port, (unsigned int)val);
+	}
+
+	/* WC (sample counter, register 1 voice 27 on DATA2) as the card's clock
+	 * shows it now. The chip may have rendered a few frames ahead for the
+	 * mixer; the counter still follows the emulated time. */
+	bool IsWordClock(Bitu port) const {
+		return port == base + 0x402 && emu->cur_reg == 1 && emu->cur_voice == 27;
+	}
+
 	emu8k_t *emu;
-	uint64_t frames_done;			/* frames of the finished blocks */
+	uint64_t rendered;			/* chip frames rendered since the reset */
+	std::vector<int32_t> out;		/* rendered stereo frames not yet mixed */
+	size_t out_pos;
 	FILE *trace;
 	Bitu base;					/* SB base + 400h */
-	pic_tickindex_t last_sync;
-	const pic_tickindex_t sample_ms;
+	pic_tickindex_t t0;			/* emulated time of the reset (ms) */
 	IO_ReadHandleObject ReadHandler[EMU_PORT_GROUPS];
 	IO_WriteHandleObject WriteHandler[EMU_PORT_GROUPS];
 	MixerObject MixerChan;
@@ -198,7 +261,7 @@ void emu8000_callback(Bitu len) {
 }
 
 EMU8000_Device::EMU8000_Device(unsigned int sb_base, const std::string &rom, int ram_kb)
-	: emu(NULL), frames_done(0), trace(NULL), base((Bitu)sb_base + 0x400u), last_sync(0), sample_ms(1000.0 / EMU_RATE), chan(NULL) {
+	: emu(NULL), rendered(0), out_pos(0), trace(NULL), base((Bitu)sb_base + 0x400u), t0(0), chan(NULL) {
 	std::string empty_rom;
 	if (rom.empty()) {
 		empty_rom = MakeEmptyRom();
@@ -223,11 +286,9 @@ EMU8000_Device::EMU8000_Device(unsigned int sb_base, const std::string &rom, int
 		WriteHandler[g].Install(base + g * EMU_PORT_GROUP_STRIDE, emu8000_write, IO_MA, 4);
 	}
 
-	/* The channel stays enabled: the chip clock (WC) advances only while the
-	 * mixer runs the callback, and drivers wait on it. */
 	chan = MixerChan.Install(emu8000_callback, EMU_RATE, EMU8000_MIXER_CHANNEL);
 	if (chan != NULL) chan->Enable(true);
-	last_sync = PIC_FullIndex();
+	t0 = PIC_FullIndex();
 
 	const char *trace_path = getenv("EMU8K_TRACE");
 	if (trace_path != NULL && *trace_path) {
@@ -256,10 +317,18 @@ Bitu EMU8000_Device::Read(Bitu port, Bitu iolen) {
 	if (iolen >= 4) {	/* the ISA bus splits a dword into two words, lower address first */
 		const Bitu lo = emu8k_inw((uint16_t)port, emu);
 		const Bitu hi = emu8k_inw((uint16_t)(port + 2), emu);
+		TraceRead(port, lo);
+		TraceRead(port + 2, hi);
 		return lo | (hi << 16);
 	}
-	if (iolen == 2) return emu8k_inw((uint16_t)port, emu);
-	return emu8k_inb((uint16_t)port, emu);
+	if (iolen == 2) {
+		const Bitu v = IsWordClock(port) ? (Bitu)(uint16_t)FramesNow() : emu8k_inw((uint16_t)port, emu);
+		TraceRead(port, v);
+		return v;
+	}
+	const Bitu v = emu8k_inb((uint16_t)port, emu);
+	TraceRead(port, v);
+	return v;
 }
 
 void EMU8000_Device::Write(Bitu port, Bitu val, Bitu iolen) {
@@ -282,27 +351,43 @@ void EMU8000_Device::Write(Bitu port, Bitu val, Bitu iolen) {
 }
 
 void EMU8000_Device::Mix(Bitu len) {
-	/* wavetable_pos_global always equals emu->pos outside this function, so
-	 * the emu8k_update() that every emu8k_outw() runs renders nothing. */
-	while (len > 0) {
-		const int start = emu->pos;
-		int n = WTBUFLEN - start;
-		if ((Bitu)n > len) n = (int)len;
-
-		wavetable_pos_global = start + n;
-		emu8k_update(emu);
-		chan->AddSamples_s32((Bitu)n, &emu->buffer[start * 2]);
-		len -= (Bitu)n;
-
-		if (emu->pos >= WTBUFLEN) {
-			emu8k_reset_buffer(emu);
-			frames_done += WTBUFLEN;
-		}
-		wavetable_pos_global = emu->pos;
-	}
+	/* wavetable_pos_global always equals emu->pos outside RenderTo(), so the
+	 * emu8k_update() that every emu8k_outw() runs renders nothing. */
+	Sync();
+	const size_t have = (out.size() - out_pos) / 2;
+	if (have < len) RenderTo(rendered + (uint64_t)(len - have));
+	chan->AddSamples_s32(len, &out[out_pos]);
+	out_pos += len * 2;
 }
 
+/* Z:\BIN\AWEUTIL.COM - the part of Creative AWEUTIL that matters on a PC with
+ * an AWE32: /S initialises the EMU8000 (after power-on it is muted), and it is
+ * in AUTOEXEC.BAT, where setup programs look for it. */
+class AWEUTIL : public Program {
+public:
+	void Run() override {
+		if (cmd->GetCount() == 0 || cmd->FindExist("/?", false)) {
+			WriteOut(MSG_Get("PROGRAM_AWEUTIL_HELP"));
+			return;
+		}
+		if (!cmd->FindExist("/S", false)) {
+			WriteOut(MSG_Get("PROGRAM_AWEUTIL_UNSUPPORTED"));
+			return;
+		}
+		if (emu8000 == NULL) {
+			WriteOut(MSG_Get("PROGRAM_AWEUTIL_NO_CARD"));
+			return;
+		}
+		emu8000->AweUtilInit();
+		WriteOut(MSG_Get("PROGRAM_AWEUTIL_DONE"), emu8000->Base());
+	}
+};
+
 } // anonymous namespace
+
+void AWEUTIL_ProgramStart(Program **make) {
+	*make = new AWEUTIL;
+}
 
 void EMU8000_Init(unsigned int sb_base, const std::string &rom_path, int ram_kb) {
 	EMU8000_ShutDown();

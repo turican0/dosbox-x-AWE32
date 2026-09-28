@@ -8079,6 +8079,7 @@ static void MORE_ProgramStart(Program * * make) {
 */
 
 void MIXER_ProgramStart(Program * * make);
+void AWEUTIL_ProgramStart(Program * * make);
 void REDOS_ProgramStart(Program * * make);
 void SHELL_ProgramStart(Program * * make);
 void SERIAL_ProgramStart(Program * * make);
@@ -10238,6 +10239,7 @@ void Add_VFiles(bool usecp) {
 	PROGRAMS_MakeFile("UTF16.COM", UTF16_ProgramStart,"/BIN/");
 # endif
 	PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("AWEUTIL.COM",AWEUTIL_ProgramStart,"/BIN/");	/* Sound Blaster AWE32, see hardware/emu8000.cpp */
 	PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
 	PROGRAMS_MakeFile("PARALLEL.COM", PARALLEL_ProgramStart,"/SYSTEM/");
 	if (IS_DOSV)

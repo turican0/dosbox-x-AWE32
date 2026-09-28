@@ -3772,10 +3772,12 @@ void DOSBOX_SetupConfigSections(void) {
 	{
 		const char *secname;
 		const unsigned short int def_sbbase[2] = {0x220,0x260}; /* 0x240 by default is occupied by the GUS */
-		const unsigned char def_irq[2] = {7,3}; /* 5 by default occupied by the GUS */
+		/* AWE32 fork: IRQ 5 as the AWE32 comes from the factory (BLASTER=A220 I5 D1 H5 P330 E620 T6);
+		 * the GUS, off by default, also defaults to 5 - move one of them when enabling it */
+		const unsigned char def_irq[2] = {5,3};
 		const unsigned char def_dma[2] = {1,0}; /* 3 by default occupied by the GUS */
 		const unsigned char def_hdma[2] = {5,7};
-		const char *def_sbtype[2] = {"sb16","none"}; /* second card off by default */
+		const char *def_sbtype[2] = {"sbawe","none"}; /* AWE32 fork: the first card is an AWE32 by default; second card off */
 		for (size_t ci=0;(secname=sbGetSectionName(ci))!=NULL;ci++) {
 			secprop=control->AddSection_prop(secname,&Null_Init,true);
 

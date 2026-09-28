@@ -310,6 +310,18 @@ void AWE32ROM_AddMessages(void) {
 		"You can download awe32.raw yourself from\n%s\n"
 		"and put it into the folder AWE32ROM next to DOSBox-X, or set its path "
 		"with the option awe32rom= in the [sblaster] section.");
+	MSG_Add("PROGRAM_AWEUTIL_HELP",
+		"Initialises the EMU8000 synthesizer of the Sound Blaster AWE32.\n\n"
+		"AWEUTIL /S\n\n"
+		"  /S  initialise the synthesizer, as Creative AWEUTIL /S does\n\n"
+		"On a PC with an AWE32 it runs from AUTOEXEC.BAT; DOSBox-X adds it to\n"
+		"its AUTOEXEC.BAT when sbtype=sbawe.\n");
+	MSG_Add("PROGRAM_AWEUTIL_UNSUPPORTED",
+		"AWEUTIL: only /S is supported here (the MIDI emulation of Creative AWEUTIL is not).\n");
+	MSG_Add("PROGRAM_AWEUTIL_NO_CARD",
+		"AWEUTIL: no Sound Blaster AWE32 - set sbtype=sbawe in the [sblaster] section.\n");
+	MSG_Add("PROGRAM_AWEUTIL_DONE",
+		"Sound Blaster AWE32: EMU8000 at %03Xh initialised.\n");
 	MSG_Add("AWE32ROM_BADFILE",
 		"The downloaded file is not the expected AWE32 wave ROM (the size or the SHA-256 checksum does not match).");
 }

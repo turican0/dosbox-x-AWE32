@@ -1118,6 +1118,14 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 		uint16_t olderror=dos.errorcode;
 		dos.errorcode=0;
 		exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
+		/* DOSBox-X reports C: as the boot drive, but its AUTOEXEC.BAT lives on Z:.
+		 * A program that reads C:\AUTOEXEC.BAT when the mounted C: has none (setup
+		 * programs looking for AWEUTIL, SET BLASTER, ...) gets that one, read-only. */
+		if (!exists && drive == 2 && (flags & 3) == OPEN_READ && !strcasecmp(fullname, "AUTOEXEC.BAT") &&
+			Drives[25] != NULL && Drives[25]->FileOpen(&Files[handle], (char *)"AUTOEXEC.BAT", flags)) {
+			exists = true;
+			drive = 25;
+		}
 		if (exists) Files[handle]->SetDrive(drive);
 		else if (dos.errorcode==DOSERR_ACCESS_CODE_INVALID) return false;
 		dos.errorcode=olderror;
