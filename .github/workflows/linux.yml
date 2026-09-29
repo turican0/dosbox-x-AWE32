@@ -90,7 +90,15 @@ jobs:
           cp $top/contrib/glshaders/* $top/src/bin/glshaders/
           cp $top/contrib/translations/*/*.lng $top/src/bin/languages/
           cd $top/src/bin
-          zip -r -9 "$top/dosbox-x-linux-x86_64-${{ env.timestamp }}.zip" *
+          # AWE32 fork: a release carries the tag in the name like the other builds
+          # (dosbox-x-linux-x86_64-dosbox-x-v2026.08.31-AWE32-0.92.zip), nightlies the timestamp
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            ZIPNAME="dosbox-x-linux-x86_64-${GITHUB_REF_NAME}.zip"
+          else
+            ZIPNAME="dosbox-x-linux-x86_64-${{ env.timestamp }}.zip"
+          fi
+          zip -r -9 "$top/$ZIPNAME" *
+          echo "ZIPNAME=$ZIPNAME" >> $GITHUB_ENV
       - name: Upload preview package
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -100,7 +108,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: dosbox-x-linux-x86_64-${{ env.timestamp }}.zip
+          files: ${{ env.ZIPNAME }}
 
   Test_Linux_Preview:
     permissions:
