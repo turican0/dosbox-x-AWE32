@@ -17,9 +17,13 @@ measurements, so all three produce the same sound for the same register writes.
 Downloads: [releases of this fork](https://github.com/turican0/dosbox-x-AWE32/releases)
 (Windows, Linux, macOS, MinGW, HX-DOS builds).
 
-Related project: [AWE32Emu](https://github.com/turican0/AWE32Emu) - the same EMU8000
-as a standalone `.mid` / `.xmi` player with the logic of Creative's drivers, the
-measurements against the real card and the tools behind them.
+Related projects:
+
+- [AWE32Emu](https://github.com/turican0/AWE32Emu) - the same EMU8000 as a standalone
+  `.mid` / `.xmi` player with the logic of Creative's drivers, the measurements against
+  the real card and the tools behind them.
+- [86Box AWE32](https://github.com/turican0/86Box-AWE32) (branch `masterAWE32`) - 86Box
+  6.0 with the same EMU8000, for running whole PCs with an AWE32.
 
 ## Quick start
 
