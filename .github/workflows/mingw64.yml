@@ -174,7 +174,7 @@ jobs:
           msystem: UCRT64
           update: true
           cache: false
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake
       - name: Clean up partial MSYS2 install before retry
         if: steps.msys2.outcome == 'failure'
         shell: pwsh
@@ -188,13 +188,24 @@ jobs:
           msystem: UCRT64
           update: true
           cache: false
-          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake mingw-w64-ucrt-x86_64-libslirp
+          install: git make mingw-w64-ucrt-x86_64-toolchain mingw-w64-ucrt-x86_64-libtool mingw-w64-ucrt-x86_64-nasm autoconf automake
       - name: Fail if MSYS2 setup did not succeed after retry
         if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
         shell: pwsh
         run: |
           Write-Error "MSYS2 setup failed twice in a row - aborting job"
           exit 1
+      - name: Install libslirp
+        run: |
+          # MSYS2 no longer ships a usable UCRT64 libslirp package, build it locally (as upstream DOSBox-X CI)
+          top=`pwd`
+          mkdir pkg
+          cd pkg
+          git clone https://github.com/msys2/MINGW-packages.git
+          cd MINGW-packages/mingw-w64-libslirp
+          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'ucrt64\')/" PKGBUILD
+          MINGW_ARCH=ucrt64 makepkg-mingw -sCLf --noconfirm
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |

@@ -30,7 +30,7 @@ jobs:
           msystem: MINGW32
           update: true
           cache: false
-          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Clean up partial MSYS2 install before retry
         if: steps.msys2.outcome == 'failure'
         shell: pwsh
@@ -44,26 +44,24 @@ jobs:
           msystem: MINGW32
           update: true
           cache: false
-          install: git make base-devel mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses mingw-w64-i686-binutils
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Fail if MSYS2 setup did not succeed after retry
         if: steps.msys2.outcome == 'failure' && steps.msys2_retry.outcome == 'failure'
         shell: pwsh
         run: |
           Write-Error "MSYS2 setup failed twice in a row - aborting job"
           exit 1
-      - name: Install libslirp
+      - name: Setup MinGW32 toolchain
         run: |
-          # Run this job when MinGW drops 32-bit library support (Other libraries can be built as well)
-          top=`pwd`
-          mkdir pkg
-          cd pkg
-          git clone https://github.com/msys2/MINGW-packages.git
-          pwd
-          cd MINGW-packages
-          cd mingw-w64-libslirp
-          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw32\')/" PKGBUILD
-          MINGW_ARCH=MINGW32 makepkg-mingw -sCLf --noconfirm
-          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
+          # MSYS2 no longer ships the i686 toolchain packages (32-bit environments are being phased out),
+          # so use the prebuilt MINGW32 toolchain the upstream DOSBox-X CI uses.
+          cd "${MSYSTEM_PREFIX}/.."
+          rm -rf mingw32
+          wget -q https://github.com/maron2000/MinGW32/releases/download/mingw32-2026.10.31/mingw32-toolchain.tar.xz
+          tar -xJf mingw32-toolchain.tar.xz
+          rm -f mingw32-toolchain.tar.xz
+          find "${MSYSTEM_PREFIX}" -type f -iname "*.exe" -exec chmod +x {} \;
+          gcc --version
       - name: Update build info
         shell: bash
         run: |
