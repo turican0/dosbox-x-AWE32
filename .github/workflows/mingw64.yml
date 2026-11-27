@@ -54,7 +54,15 @@ jobs:
       - name: Install libslirp (optional, best-effort)
         continue-on-error: true
         shell: msys2 {0}
-        run: pacman --noconfirm -S --needed mingw-w64-x86_64-libslirp
+        run: |
+          # MSYS2 no longer ships mingw-w64-x86_64-libslirp, build it locally (as upstream DOSBox-X CI)
+          mkdir -p pkg
+          cd pkg
+          git clone --depth 1 https://github.com/msys2/MINGW-packages.git
+          cd MINGW-packages/mingw-w64-libslirp
+          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw64\')/" PKGBUILD
+          MINGW_ARCH=MINGW64 makepkg-mingw -sCLf --noconfirm
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |
@@ -338,7 +346,15 @@ jobs:
       - name: Install libslirp (optional, best-effort)
         continue-on-error: true
         shell: msys2 {0}
-        run: pacman --noconfirm -S --needed mingw-w64-x86_64-libslirp
+        run: |
+          # MSYS2 no longer ships mingw-w64-x86_64-libslirp, build it locally (as upstream DOSBox-X CI)
+          mkdir -p pkg
+          cd pkg
+          git clone --depth 1 https://github.com/msys2/MINGW-packages.git
+          cd MINGW-packages/mingw-w64-libslirp
+          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw64\')/" PKGBUILD
+          MINGW_ARCH=MINGW64 makepkg-mingw -sCLf --noconfirm
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |

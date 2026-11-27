@@ -345,6 +345,13 @@ jobs:
       - name: Build MinGW32 SDL2
         run: |
           top=`pwd`
+          echo "Compiling our internal SDL 2.x"
+          (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+          new="-I${top}/vs/sdl2/linux-host/include "
+          nld="-L${top}/vs/sdl2/linux-host/lib "
+          LDFLAGS="${nld}${LDFLAGS}"
+          CPPFLAGS="${new}${CPPFLAGS}"
+          export LDFLAGS CPPFLAGS
           ./build-mingw-sdl2
           strip -s $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x_MinGWx86_SDL2.exe
@@ -407,7 +414,15 @@ jobs:
       - name: Install libslirp (optional, best-effort)
         continue-on-error: true
         shell: msys2 {0}
-        run: pacman --noconfirm -S --needed mingw-w64-x86_64-libslirp
+        run: |
+          # MSYS2 no longer ships mingw-w64-x86_64-libslirp, build it locally (as upstream DOSBox-X CI)
+          mkdir -p pkg
+          cd pkg
+          git clone --depth 1 https://github.com/msys2/MINGW-packages.git
+          cd MINGW-packages/mingw-w64-libslirp
+          sed -i -e "s/^mingw_arch=\(.*\)/mingw_arch=(\'mingw64\')/" PKGBUILD
+          MINGW_ARCH=MINGW64 makepkg-mingw -sCLf --noconfirm
+          pacman --noconfirm -U mingw-w64-*-any.pkg.tar.zst
       - name: Update build info
         shell: bash
         run: |
